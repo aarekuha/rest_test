@@ -1,11 +1,14 @@
 import time
 import requests
 from requests.sessions import HTTPAdapter
+from tqdm import tqdm
 
 
-URL_UNSAFE = "http://localhost:8080/data_unsafe"
-URL_SAFE = "http://localhost:8080/data_with_auth"
-COUNT = 10_000
+# HOST = "localhost:8080"
+HOST = "85.30.248.28:8088"
+URL_UNSAFE = f"http://{HOST}/data_unsafe"
+URL_SAFE = f"http://{HOST}/data_with_auth"
+COUNT = 1_000
 TOKEN = "secret-token"
 
 StatusCodeType = int
@@ -28,7 +31,7 @@ def sync_without_session(header: str, count: int, token: str | None = None):
     start_time: float = time.monotonic()
     url: str = URL_SAFE if token else URL_UNSAFE
     headers: dict | None = None if not token else {"x-token": token}
-    for _ in range(count):
+    for _ in tqdm(range(count)):
         response = requests.get(url=url, headers=headers)
         if not response.status_code in result_statuses:
             result_statuses[response.status_code] = 0
@@ -52,7 +55,7 @@ def sync_with_session(header: str, count: int, token: str | None = None):
         session.headers.update(headers)
     session.mount(url, HTTPAdapter())
     start_time: float = time.monotonic()
-    for _ in range(count):
+    for _ in tqdm(range(count)):
         response = session.get(url=url)
         if not response.status_code in result_statuses:
             result_statuses[response.status_code] = 0
